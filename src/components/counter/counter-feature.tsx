@@ -15,9 +15,9 @@ export default function CounterFeature() {
   return publicKey ? (
     <div>
       <AppHero
-        title="Counter"
+        title="Journal"
         subtitle={
-          'Create a new account by clicking the "Create" button. The state of a account is stored on-chain and can be manipulated by calling the program\'s methods (increment, decrement, set, and close).'
+          'Create a new journal entry and view all entries created by the program.'
         }
       >
         <p className="mb-6">

@@ -2,14 +2,13 @@
 
 import { getCounterProgram, getCounterProgramId } from '@project/anchor'
 import { useConnection } from '@solana/wallet-adapter-react'
-import { Cluster, Keypair, PublicKey } from '@solana/web3.js'
+import { Cluster, PublicKey } from '@solana/web3.js'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useCluster } from '../cluster/cluster-data-access'
 import { useAnchorProvider } from '../solana/solana-provider'
 import { useTransactionToast } from '../use-transaction-toast'
 import { toast } from 'sonner'
-import { error } from 'console'
 
 interface CreateEntryArgs {
   title: string
@@ -40,7 +39,7 @@ export function useCounterProgram() {
   const createEntry = useMutation<string, Error, CreateEntryArgs>({
     mutationKey: ['journalEntry', 'create', {cluster}],
     mutationFn: async ({title, message, owner}) => {
-      return program.methods.createJournalEntry(title,message, owner).rpc();
+      return program.methods.createJournalEntry(title,message).rpc();
     },
     onSuccess: (signature) => {
       transactionToast(signature);
@@ -56,7 +55,8 @@ export function useCounterProgram() {
     program,
     accounts,
     getProgramAccount,
-    createEntry
+    createEntry,
+    programId
   }
 }
 
@@ -70,12 +70,34 @@ export function useCounterProgramAccount({ account }: { account: PublicKey }) {
     queryFn: () => program.account.journalEntryState.fetch(account),
   })
 
+  const updateEntry = useMutation<string, Error, CreateEntryArgs>({
+    mutationKey: ['journalEntry', 'update', {cluster}],
+    mutationFn: async ({title, message}) => {
+      return program.methods.updateJournalEntry(title, message).rpc();
+    },
+    onSuccess: (signature) => {
+      transactionToast(signature);
+      accounts.refetch();
+    },
+    onError: (error) => {
+      toast.error(`Error created while updating journal: ${error.message}`)
+    }
+  })
 
-
-
-
+  const deleteEntry = useMutation({
+    mutationKey: ['journalEntry', 'update', {cluster}],
+    mutationFn: (title: string) => {
+      return program.methods.deleteJournalEntry(title).rpc();
+    },
+    onSuccess: (signature) => {
+      transactionToast(signature);
+      accounts.refetch();
+    }
+  })
 
   return {
     accountQuery,
+    updateEntry,
+    deleteEntry
   }
 }
